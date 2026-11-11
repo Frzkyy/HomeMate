@@ -1,5 +1,6 @@
 package homemate.dao;
 
+import homemate.model.Pengingat;
 import homemate.util.Format;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,6 +9,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -23,6 +25,10 @@ public class RingkasanDAO {
                 ? "SELECT COUNT(*) FROM tugas WHERE status = 'SELESAI'"
                 : "SELECT COUNT(*) FROM tugas WHERE status <> 'SELESAI'";
         return hitung(sql);
+    }
+
+    public int hitungSemuaTugas() throws SQLException {
+        return hitung("SELECT COUNT(*) FROM tugas");
     }
 
     public int hitungStokMenipis() throws SQLException {
@@ -56,10 +62,10 @@ public class RingkasanDAO {
         return daftar(sql, 4, hariIni.toString());
     }
 
-    /** Barang yang perlu dibeli. Kolom: nama, jumlah + satuan, batas minimum. */
+    /** Barang yang perlu dibeli. Kolom: nama, jumlah + satuan, batas minimum + satuan. */
     public List<String[]> barangMenipis() throws SQLException {
         String sql = """
-            SELECT nama, jumlah || ' ' || COALESCE(satuan, ''), batas_minimum
+            SELECT nama, jumlah || ' ' || COALESCE(satuan, ''), batas_minimum || ' ' || COALESCE(satuan, '')
             FROM barang WHERE jumlah <= batas_minimum ORDER BY nama""";
         return daftar(sql, 3);
     }
@@ -67,30 +73,37 @@ public class RingkasanDAO {
     /**
      * Pengingat otomatis (dihitung dari data, tidak disimpan):
      * tugas jatuh tempo, stok menipis, perawatan 7 hari ke depan, anggaran >= 80%.
+     * Diurutkan dari tanggal paling awal.
      */
-    public List<String> pengingat(LocalDate hariIni) throws SQLException {
-        List<String> hasil = new ArrayList<>();
+    public List<Pengingat> pengingat(LocalDate hariIni) throws SQLException {
+        List<Pengingat> hasil = new ArrayList<>();
+        String sekarang = hariIni.toString();
 
         // 1. Tugas belum selesai dengan tenggat sampai besok (termasuk yang sudah lewat)
         String besok = hariIni.plusDays(1).toString();
         for (String[] r : daftar("SELECT judul, tenggat FROM tugas WHERE status <> 'SELESAI' "
                 + "AND tenggat IS NOT NULL AND tenggat <= ? ORDER BY tenggat", 2, besok)) {
-            int banding = r[1].compareTo(hariIni.toString());
-            String kapan = banding < 0 ? "sudah lewat tenggat (" + r[1] + ")"
-                    : banding == 0 ? "tenggat hari ini" : "tenggat besok";
-            hasil.add("Tugas \"" + r[0] + "\" " + kapan);
+            int banding = r[1].compareTo(sekarang);
+            String kapan = banding < 0 ? "Sudah lewat tenggat"
+                    : banding == 0 ? "Tenggat hari ini" : "Tenggat besok";
+            hasil.add(new Pengingat(Pengingat.TUGAS, "Tugas " + r[0].toLowerCase(), kapan, r[1]));
         }
 
         // 2. Stok menipis
         for (String[] r : barangMenipis()) {
-            hasil.add("Stok " + r[0].trim() + " menipis (sisa " + r[1].trim() + ", minimum " + r[2] + ")");
+            hasil.add(new Pengingat(Pengingat.PERSEDIAAN, "Stok " + r[0].trim().toLowerCase() + " menipis",
+                    "Sisa " + r[1].trim() + " (batas minimum " + r[2].trim() + ")", sekarang));
         }
 
         // 3. Perawatan dalam 7 hari ke depan (atau sudah lewat dan belum selesai)
         String tujuhHari = hariIni.plusDays(7).toString();
-        for (String[] r : daftar("SELECT nama, tanggal FROM perawatan WHERE status = 'TERJADWAL' "
-                + "AND tanggal <= ? ORDER BY tanggal", 2, tujuhHari)) {
-            hasil.add("Perawatan \"" + r[0] + "\" dijadwalkan " + r[1]);
+        for (String[] r : daftar("SELECT nama, COALESCE(lokasi, ''), tanggal FROM perawatan "
+                + "WHERE status = 'TERJADWAL' AND tanggal <= ? ORDER BY tanggal", 3, tujuhHari)) {
+            String ket = r[2].compareTo(sekarang) < 0 ? "Jadwal perawatan sudah lewat" : "Jadwal perawatan berikutnya";
+            if (!r[1].isEmpty()) {
+                ket += " (" + r[1] + ")";
+            }
+            hasil.add(new Pengingat(Pengingat.PERAWATAN, r[0], ket, r[2]));
         }
 
         // 4. Pengeluaran bulan ini sudah >= 80% anggaran
@@ -108,10 +121,13 @@ public class RingkasanDAO {
         if (anggaran > 0) {
             long keluar = totalPengeluaran(bulan.atDay(1).toString(), bulan.atEndOfMonth().toString());
             if (keluar * 100 >= anggaran * 80) {
-                hasil.add("Pengeluaran bulan ini " + Format.rupiah(keluar) + " sudah "
-                        + (keluar * 100 / anggaran) + "% dari anggaran " + Format.rupiah(anggaran));
+                hasil.add(new Pengingat(Pengingat.KEUANGAN, "Pengeluaran mendekati anggaran",
+                        "Bulan ini " + Format.rupiah(keluar) + " (" + (keluar * 100 / anggaran)
+                        + "% dari anggaran " + Format.rupiah(anggaran) + ")", sekarang));
             }
         }
+
+        hasil.sort(Comparator.comparing(Pengingat::getTanggal));
         return hasil;
     }
 

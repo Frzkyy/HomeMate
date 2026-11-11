@@ -19,11 +19,16 @@ HomeMate/                 <- project NetBeans
     ├── dao/              <- BACKEND: kode yang bicara ke database
     │   ├── Koneksi.java, PenggunaDAO.java, RingkasanDAO.java   (Said)
     │   └── AnggotaDAO.java, TugasDAO.java, ...
-    └── util/
-        └── Format.java   <- format Rupiah dan tanggal (Said)
+    └── util/             (Said)
+        ├── Format.java   <- format Rupiah dan tanggal
+        ├── Tema.java     <- warna, kartu, tombol, tab, badge status, gaya tabel (sesuai mockup)
+        ├── Ikon.java     <- ikon garis yang digambar dengan kode
+        └── Preferensi.java <- pengaturan kecil (ingat username, notifikasi)
 ```
 
 Gambar mockup ada di `docs/mockup/`.
+
+**Tampilan:** pakai komponen di `util/Tema.java` supaya layar kalian sama dengan mockup (lihat `PengingatPanel` atau `LaporanPanel` sebagai contoh): `Tema.gayaHalaman(this)`, `Tema.header(...)`, `Tema.Kartu`, `Tema.Tombol`, `Tema.gayaTabel(tabel)` + `Tema.rendererLencana()` untuk kolom status.
 
 **Folder backend namanya `dao`** (Data Access Object). Isinya semua kode SQL. `model` isinya class data (field + getter/setter).
 

@@ -16,4 +16,5 @@ public class Pengguna {
     public int getId() { return id; }
     public String getUsername() { return username; }
     public String getNama() { return nama; }
+    public void setNama(String nama) { this.nama = nama; }
 }

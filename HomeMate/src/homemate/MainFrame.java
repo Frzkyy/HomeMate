@@ -4,57 +4,66 @@ import homemate.model.Pengguna;
 import homemate.panel.DashboardPanel;
 import homemate.panel.LaporanPanel;
 import homemate.panel.LoginFrame;
+import homemate.panel.PengaturanPanel;
+import homemate.panel.PengingatPanel;
+import homemate.util.Ikon;
+import homemate.util.Tema;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridLayout;
-import java.util.ArrayList;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
 
 /**
- * Window utama: sidebar di kiri, isi layar di kanan. Milik Said.
+ * Window utama: sidebar biru tua di kiri, isi layar di kanan. Milik Said.
  * Teman-teman cukup ganti panel sementara di bagian DAFTAR LAYAR
  * dengan panel buatan mereka (contoh: new TugasPanel()), lewat Said / PR.
  */
 public class MainFrame extends JFrame {
 
-    private static final Color WARNA_SIDEBAR = new Color(0x1E3A5F);
-    private static final Color WARNA_HOVER = new Color(0x2C5282);
-    private static final Color WARNA_AKTIF = new Color(0x3B82F6);
-
     private final CardLayout kartu = new CardLayout();
     private final JPanel areaIsi = new JPanel(kartu);
     private final Map<String, JPanel> layar = new LinkedHashMap<>();
-    private final List<JButton> tombolMenu = new ArrayList<>();
+    private final Map<String, ItemMenu> itemMenu = new LinkedHashMap<>();
     private final Pengguna pengguna;
 
     public MainFrame(Pengguna pengguna) {
         super("HomeMate");
         this.pengguna = pengguna;
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new Dimension(1150, 720));
+        setIconImage(Ikon.gambar(Ikon.Jenis.RUMAH, 64, Tema.PRIMER));
+        setPreferredSize(new Dimension(1200, 760));
+        setMinimumSize(new Dimension(1000, 640));
         setLayout(new BorderLayout());
 
         // ===== DAFTAR LAYAR: ganti panel sementara dengan panel asli =====
-        layar.put("Dashboard",        new DashboardPanel());               // Said
+        layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
         layar.put("Anggota Keluarga", panelSementara("Anggota Keluarga")); // Tifa
         layar.put("Tugas Rumah",      panelSementara("Tugas Rumah"));      // Carlos
         layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
         layar.put("Keuangan",         panelSementara("Keuangan"));         // Ketrin
         layar.put("Perawatan Rumah",  panelSementara("Perawatan Rumah"));  // Riva
+        layar.put("Pengingat",        new PengingatPanel());               // Said
         layar.put("Laporan",          new LaporanPanel());                 // Said
+        layar.put("Pengaturan",       new PengaturanPanel(pengguna));      // Said
         // ================================================================
 
         for (Map.Entry<String, JPanel> e : layar.entrySet()) {
@@ -70,68 +79,93 @@ public class MainFrame extends JFrame {
 
     private JPanel buatSidebar() {
         JPanel sidebar = new JPanel(new BorderLayout());
-        sidebar.setBackground(WARNA_SIDEBAR);
-        sidebar.setPreferredSize(new Dimension(230, 0));
+        sidebar.setBackground(Tema.SIDEBAR);
+        sidebar.setPreferredSize(new Dimension(240, 0));
 
-        JPanel atas = new JPanel(new GridLayout(0, 1));
-        atas.setOpaque(false);
-        JLabel judul = new JLabel("HomeMate", SwingConstants.CENTER);
-        judul.setFont(new Font("SansSerif", Font.BOLD, 22));
-        judul.setForeground(Color.WHITE);
-        judul.setBorder(BorderFactory.createEmptyBorder(24, 0, 4, 0));
-        JLabel sapa = new JLabel("Halo, " + pengguna.getNama(), SwingConstants.CENTER);
-        sapa.setForeground(new Color(0xBFD4EE));
-        sapa.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
-        atas.add(judul);
-        atas.add(sapa);
-        sidebar.add(atas, BorderLayout.NORTH);
+        // Logo
+        JPanel logo = new JPanel(new GridBagLayout());
+        logo.setOpaque(false);
+        logo.setBorder(BorderFactory.createEmptyBorder(26, 20, 22, 20));
+        JLabel nama = new JLabel("HomeMate", Ikon.buat(Ikon.Jenis.RUMAH, 30, Color.WHITE), JLabel.LEFT);
+        nama.setIconTextGap(10);
+        nama.setFont(Tema.font(Font.BOLD, 21f));
+        nama.setForeground(Color.WHITE);
+        GridBagConstraints g = new GridBagConstraints();
+        g.anchor = GridBagConstraints.WEST;
+        g.weightx = 1;
+        logo.add(nama, g);
+        sidebar.add(logo, BorderLayout.NORTH);
 
-        JPanel menu = new JPanel(new GridLayout(0, 1));
+        // Menu utama
+        JPanel menu = new JPanel();
         menu.setOpaque(false);
-        for (String nama : layar.keySet()) {
-            JButton b = buatTombol(nama);
-            b.addActionListener(e -> tampilkan(nama));
-            tombolMenu.add(b);
-            menu.add(b);
+        menu.setLayout(new BoxLayout(menu, BoxLayout.Y_AXIS));
+        menu.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+        for (String nm : layar.keySet()) {
+            if (nm.equals("Pengaturan")) {
+                continue; // Pengaturan ada di bawah
+            }
+            menu.add(buatItem(nm, ikonMenu(nm)));
+            menu.add(Box.createVerticalStrut(4));
         }
-        JPanel pembungkus = new JPanel(new BorderLayout());
-        pembungkus.setOpaque(false);
-        pembungkus.add(menu, BorderLayout.NORTH);
-        sidebar.add(pembungkus, BorderLayout.CENTER);
+        sidebar.add(menu, BorderLayout.CENTER);
 
-        JPanel bawah = new JPanel(new GridLayout(0, 1));
+        // Bawah: Pengaturan + Keluar
+        JPanel bawah = new JPanel();
         bawah.setOpaque(false);
-        JButton keluar = buatTombol("Keluar");
-        keluar.addActionListener(e -> keluar());
+        bawah.setLayout(new BoxLayout(bawah, BoxLayout.Y_AXIS));
+        bawah.setBorder(BorderFactory.createEmptyBorder(0, 12, 18, 12));
+        bawah.add(buatItem("Pengaturan", Ikon.Jenis.GEAR));
+        bawah.add(Box.createVerticalStrut(4));
+        ItemMenu keluar = new ItemMenu("Keluar", Ikon.Jenis.KELUAR);
+        keluar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                keluar();
+            }
+        });
         bawah.add(keluar);
-        bawah.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
         sidebar.add(bawah, BorderLayout.SOUTH);
         return sidebar;
     }
 
-    private JButton buatTombol(String teks) {
-        JButton b = new JButton(teks);
-        b.setForeground(Color.WHITE);
-        b.setBackground(WARNA_SIDEBAR);
-        b.setHorizontalAlignment(SwingConstants.LEFT);
-        b.setBorder(BorderFactory.createEmptyBorder(12, 24, 12, 12));
-        b.setFocusPainted(false);
-        b.setOpaque(true);
-        b.setContentAreaFilled(true);
-        b.setBorderPainted(false);
-        return b;
+    private ItemMenu buatItem(String nama, Ikon.Jenis ikon) {
+        ItemMenu item = new ItemMenu(nama, ikon);
+        item.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                tampilkan(nama);
+            }
+        });
+        itemMenu.put(nama, item);
+        return item;
     }
 
-    /** Pindah layar dan tandai menu yang aktif. */
-    private void tampilkan(String nama) {
+    private Ikon.Jenis ikonMenu(String nama) {
+        return switch (nama) {
+            case "Dashboard" -> Ikon.Jenis.RUMAH;
+            case "Anggota Keluarga" -> Ikon.Jenis.ORANG;
+            case "Tugas Rumah" -> Ikon.Jenis.TUGAS;
+            case "Persediaan" -> Ikon.Jenis.KOTAK;
+            case "Keuangan" -> Ikon.Jenis.DOMPET;
+            case "Perawatan Rumah" -> Ikon.Jenis.KUNCI_INGGRIS;
+            case "Pengingat" -> Ikon.Jenis.LONCENG;
+            case "Laporan" -> Ikon.Jenis.GRAFIK;
+            default -> Ikon.Jenis.LINGKARAN;
+        };
+    }
+
+    /** Pindah layar dan tandai menu yang aktif. Boleh dipanggil dari panel lain lewat Said. */
+    public void tampilkan(String nama) {
         kartu.show(areaIsi, nama);
-        for (JButton b : tombolMenu) {
-            b.setBackground(b.getText().equals(nama) ? WARNA_AKTIF : WARNA_SIDEBAR);
+        for (Map.Entry<String, ItemMenu> e : itemMenu.entrySet()) {
+            e.getValue().setAktif(e.getKey().equals(nama));
         }
     }
 
     private void keluar() {
-        int pilih = JOptionPane.showConfirmDialog(this, "Yakin ingin keluar?", "Keluar",
+        int pilih = JOptionPane.showConfirmDialog(this,
+                "Yakin ingin keluar, " + pengguna.getNama() + "?", "Keluar",
                 JOptionPane.YES_NO_OPTION);
         if (pilih == JOptionPane.YES_OPTION) {
             dispose();
@@ -139,12 +173,79 @@ public class MainFrame extends JFrame {
         }
     }
 
-    /** Panel kosong sementara sampai pemilik modulnya selesai. */
+    /** Layar kosong bergaya mockup sampai pemilik modulnya selesai. */
     private JPanel panelSementara(String judul) {
         JPanel p = new JPanel(new BorderLayout());
-        JLabel l = new JLabel(judul + " (belum dikerjakan)", SwingConstants.CENTER);
-        l.setFont(new Font("SansSerif", Font.PLAIN, 18));
-        p.add(l, BorderLayout.CENTER);
+        Tema.gayaHalaman(p);
+        p.add(Tema.header(judul, "Modul ini sedang dikerjakan", null), BorderLayout.NORTH);
+
+        Tema.Kartu isi = new Tema.Kartu(new GridBagLayout());
+        JPanel isiTengah = new JPanel();
+        isiTengah.setOpaque(false);
+        isiTengah.setLayout(new BoxLayout(isiTengah, BoxLayout.Y_AXIS));
+        JLabel ikon = new JLabel(Ikon.buat(ikonMenu(judul), 48, new Color(0x94A3B8)));
+        ikon.setAlignmentX(CENTER_ALIGNMENT);
+        JLabel teks = Tema.label(judul + " (belum dikerjakan)", Font.PLAIN, 16f, Tema.TEKS_REDUP);
+        teks.setAlignmentX(CENTER_ALIGNMENT);
+        isiTengah.add(ikon);
+        isiTengah.add(Box.createVerticalStrut(12));
+        isiTengah.add(teks);
+        isi.add(isiTengah);
+        p.add(isi, BorderLayout.CENTER);
         return p;
+    }
+
+    /** Satu baris menu di sidebar: ikon + teks, sorot saat aktif atau disentuh mouse. */
+    private static class ItemMenu extends JPanel {
+
+        private boolean aktif;
+        private boolean hover;
+
+        ItemMenu(String teks, Ikon.Jenis ikon) {
+            super(new BorderLayout(12, 0));
+            setOpaque(false);
+            setBorder(BorderFactory.createEmptyBorder(0, 16, 0, 12));
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
+            setPreferredSize(new Dimension(0, 46));
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+            JLabel i = new JLabel(Ikon.buat(ikon, 20, Color.WHITE));
+            JLabel t = new JLabel(teks);
+            t.setFont(Tema.font(Font.PLAIN, 14f));
+            t.setForeground(Color.WHITE);
+            add(i, BorderLayout.WEST);
+            add(t, BorderLayout.CENTER);
+
+            addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    hover = true;
+                    repaint();
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    hover = false;
+                    repaint();
+                }
+            });
+        }
+
+        void setAktif(boolean aktif) {
+            this.aktif = aktif;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g0) {
+            if (aktif || hover) {
+                Graphics2D g = (Graphics2D) g0.create();
+                g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g.setColor(aktif ? Tema.AKTIF : Tema.SIDEBAR_HOVER);
+                g.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g.dispose();
+            }
+            super.paintComponent(g0);
+        }
     }
 }

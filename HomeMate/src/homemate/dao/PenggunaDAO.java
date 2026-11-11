@@ -23,4 +23,25 @@ public class PenggunaDAO {
         }
         return null;
     }
+
+    /** Ubah nama tampilan pengguna. */
+    public void ubahNama(int id, String nama) throws SQLException {
+        try (Connection c = Koneksi.getConnection();
+             PreparedStatement ps = c.prepareStatement("UPDATE pengguna SET nama = ? WHERE id = ?")) {
+            ps.setString(1, nama);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        }
+    }
+
+    /** Ganti password kalau password lama cocok. Kembalikan false kalau password lama salah. */
+    public boolean ubahPassword(int id, String lama, String baru) throws SQLException {
+        try (Connection c = Koneksi.getConnection();
+             PreparedStatement ps = c.prepareStatement("UPDATE pengguna SET password = ? WHERE id = ? AND password = ?")) {
+            ps.setString(1, baru);
+            ps.setInt(2, id);
+            ps.setString(3, lama);
+            return ps.executeUpdate() > 0;
+        }
+    }
 }
