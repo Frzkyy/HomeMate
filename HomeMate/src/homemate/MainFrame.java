@@ -1,6 +1,7 @@
 package homemate;
 
 import homemate.model.Pengguna;
+import homemate.panel.AnggotaPanel;
 import homemate.panel.DashboardPanel;
 import homemate.panel.LaporanPanel;
 import homemate.panel.LoginFrame;
@@ -56,7 +57,7 @@ public class MainFrame extends JFrame {
 
         // ===== DAFTAR LAYAR: ganti panel sementara dengan panel asli =====
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
-        layar.put("Anggota Keluarga", panelSementara("Anggota Keluarga")); // Tifa
+        layar.put("Anggota Keluarga", new AnggotaPanel()); // Tifa
         layar.put("Tugas Rumah",      panelSementara("Tugas Rumah"));      // Carlos
         layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
         layar.put("Keuangan",         panelSementara("Keuangan"));         // Ketrin
