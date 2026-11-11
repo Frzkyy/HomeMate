@@ -3,7 +3,7 @@
 Tugas kuliah Java: aplikasi desktop CRUD sederhana. Java + Swing (NetBeans GUI Builder) + SQLite. Jaga tetap sederhana, jangan menambah lapisan atau fitur di luar `docs/PROJECT.md`.
 
 ## Wajib
-1. Baca `docs/PROJECT.md` sebelum ngoding.
+1. Baca `docs/PROJECT.md` sebelum ngoding. Kalau bikin atau mengubah layar, lihat juga gambar mockup `docs/mockup/mockup-semua-halaman.jpeg` dan tiru tata letak serta warnanya (sebagai acuan, boleh disederhanakan).
 2. Di awal sesi, cari tahu siapa user (tanya "lu siapa?" kalau belum bilang). Jangan menebak.
 3. Kerjakan HANYA file modul milik user itu (lihat tabel tim di `docs/PROJECT.md`). Jangan edit file modul orang lain.
 4. `MainFrame.java`, `dao/Koneksi.java`, dan skema tabel hanya Said yang ubah. Kalau perlu diubah, tulis permintaannya ke user untuk diteruskan ke Said.

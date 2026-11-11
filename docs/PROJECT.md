@@ -13,14 +13,17 @@ HomeMate/                 <- project NetBeans
     ├── HomeMate.java     <- main (titik mulai)
     ├── MainFrame.java    <- window utama + sidebar menu
     ├── panel/            <- TAMPILAN: satu file JPanel per layar
-    │   ├── LoginFrame, DashboardPanel
-    │   ├── AnggotaPanel, TugasPanel, PersediaanPanel
-    │   └── KeuanganPanel, PerawatanPanel, LaporanPanel
-    ├── model/            <- DATA: class biasa (Anggota.java, Tugas.java, ...)
-    └── dao/              <- BACKEND: kode yang bicara ke database
-        ├── Koneksi.java      (koneksi + bikin tabel, milik Said)
-        └── AnggotaDAO.java, TugasDAO.java, ...
+    │   ├── LoginFrame, DashboardPanel, LaporanPanel   (Said)
+    │   └── AnggotaPanel, TugasPanel, PersediaanPanel, KeuanganPanel, PerawatanPanel
+    ├── model/            <- DATA: class biasa (Pengguna.java, Anggota.java, Tugas.java, ...)
+    ├── dao/              <- BACKEND: kode yang bicara ke database
+    │   ├── Koneksi.java, PenggunaDAO.java, RingkasanDAO.java   (Said)
+    │   └── AnggotaDAO.java, TugasDAO.java, ...
+    └── util/
+        └── Format.java   <- format Rupiah dan tanggal (Said)
 ```
+
+Gambar mockup ada di `docs/mockup/`.
 
 **Folder backend namanya `dao`** (Data Access Object). Isinya semua kode SQL. `model` isinya class data (field + getter/setter).
 
@@ -40,6 +43,26 @@ Modul yang selesai duluan (misalnya Anggota) jadi contoh pola CRUD buat yang lai
 | **Riva** | Perawatan Rumah | `PerawatanPanel`, `Perawatan`, `PerawatanDAO` |
 
 Aturan: kerjakan file milik sendiri saja. Mau ubah `MainFrame`, `Koneksi`, atau tabel database? Minta Said.
+
+## Mockup
+
+Gambar rancangan semua layar: `docs/mockup/mockup-semua-halaman.jpeg`. **Lihat dulu sebelum bikin layar.**
+
+- Nama di gambar masih "HomeFlow", nama aplikasi yang dipakai tetap **HomeMate**.
+- Gambar itu acuan tampilan, bukan harus 100% sama. Fitur yang rumit (kalender, grafik pie, foto profil, ilustrasi) boleh disederhanakan atau dilewati.
+- Gaya yang dipakai di semua layar: sidebar biru tua di kiri, tombol utama biru, kartu putih, badge status berwarna (hijau = Selesai/Aman/Terjadwal, oranye = Sedang, merah = Belum/Menipis/Tinggi).
+
+| No | Halaman di mockup | Pemilik |
+|---|---|---|
+| 1 | Login | Said |
+| 2 | Dashboard | Said |
+| 3 | Anggota Keluarga | Tifa |
+| 4 | Aktivitas dan Jadwal (Tugas Rumah) | Carlos |
+| 5 | Persediaan dan Daftar Belanja | Devin |
+| 6 | Keuangan dan Laporan | Ketrin (Laporan: Said) |
+| 7 | Pemeliharaan Rumah | Riva |
+| 8 | Pengingat | Said (opsional, sementara tampil di Dashboard) |
+| 9 | Pengaturan | Said (opsional) |
 
 ## Daftar fitur
 
