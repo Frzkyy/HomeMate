@@ -82,8 +82,27 @@ public class Koneksi {
                 status TEXT NOT NULL DEFAULT 'TERJADWAL'
                     CHECK (status IN ('TERJADWAL','SELESAI'))
             )""",
+            
+            """
+            CREATE TABLE IF NOT EXISTS notifikasi (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                judul TEXT NOT NULL,
+                pesan TEXT NOT NULL,
+                tipe TEXT NOT NULL,
+                tugas_id INTEGER,
+                waktu TEXT NOT NULL,
+                dibaca INTEGER DEFAULT 0,
+                kode_unik TEXT UNIQUE,
+                FOREIGN KEY (tugas_id)
+                    REFERENCES tugas(id)
+                    ON DELETE SET NULL
+            )""",
+
+            
             // Akun awal supaya bisa login: admin / admin123
             "INSERT OR IGNORE INTO pengguna (username, password, nama) VALUES ('admin','admin123','Admin')"
+                
+            
         };
         try (Connection c = getConnection(); Statement st = c.createStatement()) {
             for (String s : sql) {

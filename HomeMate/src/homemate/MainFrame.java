@@ -35,8 +35,11 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import homemate.panel.TugasPanel;
-import java.awt.Color;
 
+import homemate.panel.NotifikasiPanel;
+import homemate.dao.PengingatDeadline;
+import javax.swing.Timer;
+import java.sql.SQLException;
 import homemate.panel.KeuanganPanel;
 
 
@@ -66,6 +69,9 @@ public class MainFrame extends JFrame {
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
         layar.put("Anggota Keluarga", new AnggotaPanel()); // Tifa
         layar.put("Tugas Rumah", new TugasPanel()); // Carlos
+
+        layar.put("Notifikasi", new NotifikasiPanel()); //Carlos
+        layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
         layar.put("Persediaan",       new PersediaanPanel());              // Devin
         layar.put("Keuangan",         new KeuanganPanel());                // Ketrin
         layar.put("Perawatan Rumah",  panelSementara("Perawatan Rumah"));  // Riva
@@ -83,6 +89,9 @@ public class MainFrame extends JFrame {
         pack();
         setLocationRelativeTo(null);
         tampilkan("Dashboard");
+        
+        // Jalankan sistem pengingat deadline
+        mulaiPengingatDeadline();
     }
 
     private JPanel buatSidebar() {
@@ -171,6 +180,32 @@ public class MainFrame extends JFrame {
         }
     }
 
+        // ======================================================
+// SISTEM PENGINGAT DEADLINE OTOMATIS
+// ======================================================
+    private void mulaiPengingatDeadline() {
+
+        PengingatDeadline pengingat = new PengingatDeadline();
+
+        // Periksa deadline saat aplikasi pertama kali dibuka
+        try {
+            pengingat.periksaDeadline();
+        } catch (Exception e) {
+            System.err.println("Gagal memeriksa deadline: " + e.getMessage());
+        }
+
+        // Periksa deadline secara berkala setiap 60 detik
+        Timer timer = new Timer(60_000, e -> {
+            try {
+                pengingat.periksaDeadline();
+            } catch (Exception ex) {
+                System.err.println("Gagal memeriksa deadline: " + ex.getMessage());
+            }
+        });
+
+        timer.start();
+    }
+    
     private void keluar() {
         int pilih = JOptionPane.showConfirmDialog(this,
                 "Yakin ingin keluar, " + pengguna.getNama() + "?", "Keluar",
