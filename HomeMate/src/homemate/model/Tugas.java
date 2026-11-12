@@ -1,7 +1,7 @@
 package homemate.model;
 
 /** Data satu tugas rumah. Milik Carlos (modul Tugas Rumah). */
-public class Tugas {
+public class Tugas extends ItemRumah {
 
     public static final String BELUM = "BELUM";
     public static final String SEDANG = "SEDANG";
@@ -10,7 +10,6 @@ public class Tugas {
     /** Sisa waktu (menit) saat peringatan "hampir selesai" muncul. */
     public static final int AMBANG_PERINGATAN_MENIT = 5;
 
-    private int id;
     private String judul;
     private String deskripsi;
     private Integer anggotaId;      // null kalau penanggung jawabnya Sistem / kosong
@@ -25,14 +24,7 @@ public class Tugas {
     private Long mulaiPada;         // waktu tombol Mulai ditekan (epoch millis), null = belum
     private Long sisaJeda;          // sisa waktu (ms) saat dijeda, null = tidak sedang dijeda
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
+    @Override
     public String getJudul() {
         return judul;
     }
@@ -119,6 +111,17 @@ public class Tugas {
 
     public void setSisaJeda(Long sisaJeda) {
         this.sisaJeda = sisaJeda;
+    }
+
+    // Mengisi method abstract dari ItemRumah
+    @Override
+    public String getModul() {
+        return Pengingat.TUGAS;
+    }
+
+    @Override
+    public String getDetail() {
+        return getPenanggungJawab() + ", tenggat " + (tenggat == null || tenggat.isEmpty() ? "-" : tenggat) + ", " + status;
     }
 
     // ===== Bantuan hitung mundur =====
