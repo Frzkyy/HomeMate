@@ -32,7 +32,12 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+
+import homemate.panel.TugasPanel;
+import java.awt.Color;
+
 import homemate.panel.KeuanganPanel;
+
 
 /**
  * Window utama: sidebar biru tua di kiri, isi layar di kanan. Milik Said.
@@ -59,7 +64,7 @@ public class MainFrame extends JFrame {
         // ===== DAFTAR LAYAR: ganti panel sementara dengan panel asli =====
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
         layar.put("Anggota Keluarga", new AnggotaPanel()); // Tifa
-        layar.put("Tugas Rumah",      panelSementara("Tugas Rumah"));      // Carlos
+        layar.put("Tugas Rumah", new TugasPanel()); // Carlos
         layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
         layar.put("Keuangan",         new KeuanganPanel());                // Ketrin
         layar.put("Perawatan Rumah",  panelSementara("Perawatan Rumah"));  // Riva
