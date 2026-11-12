@@ -7,6 +7,7 @@ import homemate.panel.LaporanPanel;
 import homemate.panel.LoginFrame;
 import homemate.panel.PengaturanPanel;
 import homemate.panel.PengingatPanel;
+import homemate.panel.TugasPanel;
 import homemate.panel.PersediaanPanel;
 import homemate.util.Ikon;
 import homemate.util.Tema;
