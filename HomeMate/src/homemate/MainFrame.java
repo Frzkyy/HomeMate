@@ -59,11 +59,13 @@ public class MainFrame extends JFrame {
     public MainFrame(Pengguna pengguna) {
         super("HomeMate");
         this.pengguna = pengguna;
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        setIconImage(Ikon.gambar(Ikon.Jenis.RUMAH, 64, Tema.PRIMER));
-        setPreferredSize(new Dimension(1200, 760));
-        setMinimumSize(new Dimension(1000, 640));
-        setLayout(new BorderLayout());
+        // TEST NOTIFIKASI
+        
+                setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+                setIconImage(Ikon.gambar(Ikon.Jenis.RUMAH, 64, Tema.PRIMER));
+                setPreferredSize(new Dimension(1200, 760));
+                setMinimumSize(new Dimension(1000, 640));
+                setLayout(new BorderLayout());
 
         // ===== DAFTAR LAYAR: ganti panel sementara dengan panel asli =====
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said

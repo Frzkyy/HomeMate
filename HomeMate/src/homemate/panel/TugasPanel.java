@@ -385,25 +385,59 @@ private JPanel buatKartuProgres(
         }
     }
 
+    
     private void ubahStatus() {
         Tugas t = tugasTerpilih();
+
         if (t == null) {
             return;
         }
+
         int pilihan = JOptionPane.showOptionDialog(this,
                 "Ubah status tugas \"" + t.getJudul() + "\" menjadi:",
-                "Ubah Status", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-                null, NAMA_STATUS, Format.kapital(t.getStatus()));
+                "Ubah Status",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                NAMA_STATUS,
+                Format.kapital(t.getStatus()));
+
         if (pilihan < 0) {
-            return; // dialog ditutup
+            return;
         }
+
         try {
-            dao.ubahStatus(t.getId(), KODE_STATUS[pilihan]);
+            // Status baru yang dipilih
+            String statusBaru = KODE_STATUS[pilihan];
+
+            // Simpan perubahan status tugas
+            dao.ubahStatus(t.getId(), statusBaru);
+
+            // Buat notifikasi jika tugas baru selesai
+            if ("SELESAI".equals(statusBaru)
+                    && !"SELESAI".equals(t.getStatus())) {
+
+               new homemate.dao.NotifikasiDAO().tambah(
+                "Tugas Selesai",
+                "Tugas \"" + t.getJudul()
+                + "\" telah diselesaikan.",
+                "SELESAI",
+                t.getId(),
+                "TUGAS_SELESAI_" + t.getId()
+                + "_" + System.currentTimeMillis()
+        );
+
+        System.out.println("NOTIFIKASI TUGAS SELESAI BERHASIL DIBUAT!");
+            }
+
+            // Muat ulang tabel tugas
             muat();
+
         } catch (SQLException e) {
             kesalahan("Gagal mengubah status", e);
         }
     }
+
 
     private void hapusTugas() {
         Tugas t = tugasTerpilih();
