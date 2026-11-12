@@ -7,6 +7,7 @@ import homemate.panel.LaporanPanel;
 import homemate.panel.LoginFrame;
 import homemate.panel.PengaturanPanel;
 import homemate.panel.PengingatPanel;
+import homemate.panel.PersediaanPanel;
 import homemate.util.Ikon;
 import homemate.util.Tema;
 import java.awt.BorderLayout;
@@ -65,7 +66,7 @@ public class MainFrame extends JFrame {
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
         layar.put("Anggota Keluarga", new AnggotaPanel()); // Tifa
         layar.put("Tugas Rumah", new TugasPanel()); // Carlos
-        layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
+        layar.put("Persediaan",       new PersediaanPanel());              // Devin
         layar.put("Keuangan",         new KeuanganPanel());                // Ketrin
         layar.put("Perawatan Rumah",  panelSementara("Perawatan Rumah"));  // Riva
         layar.put("Pengingat",        new PengingatPanel());               // Said
