@@ -97,14 +97,22 @@ public class TugasDAO {
             INSERT INTO tugas (judul, deskripsi, anggota_id, prioritas, tenggat, status,
                                pj_sistem, durasi_menit, mulai_pada)
             VALUES (?, ?, ?, ?, ?, 'BELUM', ?, ?, NULL)""";
+        int idBaru;
         try (Connection c = Koneksi.getConnection();
                 PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             isiParameter(ps, t);
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                return rs.next() ? rs.getInt(1) : -1;
+                idBaru = rs.next() ? rs.getInt(1) : -1;
             }
         }
+        // Koneksi sudah ditutup di atas, baru tulis notifikasi (hindari "database is locked")
+        if (idBaru > 0) {
+            buatNotifikasi("Tugas Baru",
+                    "Tugas \"" + t.getJudul() + "\" telah ditambahkan.",
+                    "TUGAS_BARU", idBaru, "TUGAS_BARU_" + idBaru + "_" + System.currentTimeMillis());
+        }
+        return idBaru;
     }
 
     /** Ubah data tugas. Status dan waktu mulai tidak ikut diubah di sini. */
@@ -118,12 +126,23 @@ public class TugasDAO {
             ps.setInt(8, t.getId());
             ps.executeUpdate();
         }
+        buatNotifikasi("Tugas Diubah",
+                "Tugas \"" + t.getJudul() + "\" telah diperbarui.",
+                "TUGAS_DIUBAH", t.getId(), "TUGAS_DIUBAH_" + t.getId() + "_" + System.currentTimeMillis());
     }
 
     public void hapus(int id) throws SQLException {
+        // Ambil judul dulu, setelah dihapus datanya sudah tidak ada
+        Tugas lama = cari(id);
         try (Connection c = Koneksi.getConnection(); PreparedStatement ps = c.prepareStatement("DELETE FROM tugas WHERE id = ?")) {
             ps.setInt(1, id);
             ps.executeUpdate();
+        }
+        if (lama != null) {
+            // tugas_id null karena tugasnya sudah tidak ada (FK ON DELETE SET NULL)
+            buatNotifikasi("Tugas Dihapus",
+                    "Tugas \"" + lama.getJudul() + "\" telah dihapus.",
+                    "TUGAS_DIHAPUS", null, "TUGAS_DIHAPUS_" + id + "_" + System.currentTimeMillis());
         }
     }
 
@@ -337,6 +356,15 @@ public int selesaikanYangHabis(long sekarang) throws SQLException {
     }
 
     // ===== Bantu =====
+
+    /** Notifikasi tidak boleh menggagalkan simpan tugas, jadi error-nya cukup dicatat. */
+    private void buatNotifikasi(String judul, String pesan, String tipe, Integer tugasId, String kode) {
+        try {
+            new NotifikasiDAO().tambah(judul, pesan, tipe, tugasId, kode);
+        } catch (SQLException e) {
+            System.err.println("Gagal membuat notifikasi: " + e.getMessage());
+        }
+    }
 
     private void isiParameter(PreparedStatement ps, Tugas t) throws SQLException {
         ps.setString(1, t.getJudul());

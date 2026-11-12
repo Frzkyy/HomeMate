@@ -389,6 +389,8 @@ public class NotifikasiPanel extends JPanel {
             case "DEADLINE" -> new Color(0xEA580C);
             case "TERLAMBAT" -> new Color(0xDC2626);
             case "TUGAS_BARU" -> new Color(0x2563EB);
+            case "TUGAS_DIUBAH" -> new Color(0x0891B2);
+            case "TUGAS_DIHAPUS" -> new Color(0x6B7280);
             default -> new Color(0x7C3AED);
         };
     }
@@ -402,6 +404,8 @@ public class NotifikasiPanel extends JPanel {
             case "DEADLINE" -> "◷";
             case "TERLAMBAT" -> "!";
             case "TUGAS_BARU" -> "+";
+            case "TUGAS_DIUBAH" -> "✎";
+            case "TUGAS_DIHAPUS" -> "×";
             default -> "●";
         };
     }
