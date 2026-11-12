@@ -12,6 +12,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -52,6 +54,13 @@ public class NotifikasiPanel extends JPanel {
         buatHeader();
         buatDaftar();
 
+        // Notifikasi baru dibuat di latar belakang (deadline, tugas selesai), jadi muat ulang tiap layar dibuka
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                refreshNotifikasi();
+            }
+        });
         refreshNotifikasi();
     }
 
@@ -266,7 +275,7 @@ public class NotifikasiPanel extends JPanel {
 
         JLabel pesan = new JLabel(
                 "<html><body style='width:450px'>"
-                + n.getPesan()
+                + escapeHtml(n.getPesan())
                 + "</body></html>");
 
         pesan.setFont(Tema.font(Font.PLAIN, 13f));
@@ -395,6 +404,14 @@ public class NotifikasiPanel extends JPanel {
             case "TUGAS_BARU" -> "+";
             default -> "●";
         };
+    }
+
+    /** Judul tugas bisa berisi karakter seperti &lt; atau &amp;; jangan sampai dianggap tag HTML. */
+    private static String escapeHtml(String teks) {
+        if (teks == null) {
+            return "";
+        }
+        return teks.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private void tampilError(Exception ex) {

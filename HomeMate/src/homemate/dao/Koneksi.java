@@ -82,7 +82,7 @@ public class Koneksi {
                 status TEXT NOT NULL DEFAULT 'TERJADWAL'
                     CHECK (status IN ('TERJADWAL','SELESAI'))
             )""",
-            
+
             """
             CREATE TABLE IF NOT EXISTS notifikasi (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,16 +98,15 @@ public class Koneksi {
                     ON DELETE SET NULL
             )""",
 
-            
             // Akun awal supaya bisa login: admin / admin123
             "INSERT OR IGNORE INTO pengguna (username, password, nama) VALUES ('admin','admin123','Admin')"
-                
-            
         };
         try (Connection c = getConnection(); Statement st = c.createStatement()) {
             for (String s : sql) {
                 st.execute(s);
             }
         }
+        // Kolom tambahan tugas (penanggung jawab Sistem) harus ada sebelum modul mana pun membaca tabel tugas
+        TugasDAO.siapkanKolom();
     }
 }

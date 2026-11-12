@@ -82,7 +82,7 @@ public class RingkasanDAO {
         // 1. Tugas belum selesai dengan tenggat sampai besok (termasuk yang sudah lewat)
         String besok = hariIni.plusDays(1).toString();
         for (String[] r : daftar("SELECT judul, tenggat FROM tugas WHERE status <> 'SELESAI' "
-                + "AND tenggat IS NOT NULL AND tenggat <= ? ORDER BY tenggat", 2, besok)) {
+                + "AND tenggat IS NOT NULL AND tenggat <> '' AND tenggat <= ? ORDER BY tenggat", 2, besok)) {
             int banding = r[1].compareTo(sekarang);
             String kapan = banding < 0 ? "Sudah lewat tenggat"
                     : banding == 0 ? "Tenggat hari ini" : "Tenggat besok";

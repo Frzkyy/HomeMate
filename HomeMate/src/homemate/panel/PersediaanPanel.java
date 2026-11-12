@@ -163,8 +163,8 @@ public class PersediaanPanel extends JPanel {
         int no = 1;
         for (Barang b : daftar) {
             modelTabel.addRow(new Object[]{no++, b.getNama(),
-                b.getJumlah() + " " + b.getSatuan(),
-                b.getBatasMinimum() + " " + b.getSatuan(),
+                (b.getJumlah() + " " + satuan(b)).trim(),
+                (b.getBatasMinimum() + " " + satuan(b)).trim(),
                 b.getStatus(), ""});
         }
     }
@@ -192,7 +192,7 @@ public class PersediaanPanel extends JPanel {
         JPanel teks = new JPanel(new GridLayout(2, 1));
         teks.setOpaque(false);
         teks.add(Tema.label(b.getNama(), Font.BOLD, 13f, Tema.TEKS));
-        teks.add(Tema.label("Sisa " + b.getJumlah() + " " + b.getSatuan()
+        teks.add(Tema.label("Sisa " + b.getJumlah() + " " + satuan(b)
                 + " (minimum " + b.getBatasMinimum() + ")", Font.PLAIN, 12f, Tema.MERAH_TUA));
         baris.add(teks, BorderLayout.CENTER);
 
@@ -204,6 +204,10 @@ public class PersediaanPanel extends JPanel {
         kanan.add(btn);
         baris.add(kanan, BorderLayout.EAST);
         return baris;
+    }
+
+    private static String satuan(Barang b) {
+        return b.getSatuan() == null ? "" : b.getSatuan();
     }
 
     private void isiPeringatan() {
@@ -311,7 +315,7 @@ public class PersediaanPanel extends JPanel {
         g.gridx = 0;
         g.gridy = 0;
         g.gridwidth = 2;
-        form.add(Tema.label(b.getNama() + " (stok sekarang " + b.getJumlah() + " " + b.getSatuan() + ")",
+        form.add(Tema.label(b.getNama() + " (stok sekarang " + b.getJumlah() + " " + satuan(b) + ")",
                 Font.PLAIN, 13f, Tema.TEKS_REDUP), g);
         g.gridy = 1;
         g.gridwidth = 1;
@@ -366,7 +370,7 @@ public class PersediaanPanel extends JPanel {
         Tema.gayaKolom(txtBatas);
         JComboBox<String> cmbSatuan = new JComboBox<>(SATUAN);
         cmbSatuan.setEditable(true);
-        cmbSatuan.setSelectedItem(awal == null ? SATUAN[0] : awal.getSatuan());
+        cmbSatuan.setSelectedItem(awal == null || awal.getSatuan() == null ? SATUAN[0] : awal.getSatuan());
         cmbSatuan.setFont(Tema.font(Font.PLAIN, 14f));
 
         JPanel form = new JPanel(new GridBagLayout());

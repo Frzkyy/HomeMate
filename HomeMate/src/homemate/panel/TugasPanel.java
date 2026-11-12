@@ -191,6 +191,23 @@ public class TugasPanel extends JPanel {
         pewaktu.start();
     }
 
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        if (pewaktu != null && !pewaktu.isRunning()) {
+            pewaktu.start();
+        }
+    }
+
+    /** Dipanggil saat panel dilepas dari jendela (mis. logout): hentikan pewaktu supaya tidak menumpuk. */
+    @Override
+    public void removeNotify() {
+        if (pewaktu != null) {
+            pewaktu.stop();
+        }
+        super.removeNotify();
+    }
+
     // ================= Tampilan =================
 
     private JPanel buatBarisCari() {

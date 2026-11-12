@@ -1,2 +1,8 @@
 /HomeMate/nbproject/private/
 /HomeMate/build/
+
+# Database lokal (dibuat otomatis oleh Koneksi.buatTabel, jangan di-commit)
+/HomeMate/homemate.db
+
+# Penanda pengguna AI lokal
+AGENTS.local.md

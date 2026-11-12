@@ -1,14 +1,18 @@
 package homemate;
 
+import homemate.dao.PengingatDeadline;
 import homemate.model.Pengguna;
 import homemate.panel.AnggotaPanel;
 import homemate.panel.DashboardPanel;
+import homemate.panel.KeuanganPanel;
 import homemate.panel.LaporanPanel;
 import homemate.panel.LoginFrame;
+import homemate.panel.NotifikasiPanel;
 import homemate.panel.PengaturanPanel;
 import homemate.panel.PengingatPanel;
-import homemate.panel.TugasPanel;
+import homemate.panel.PerawatanPanel;
 import homemate.panel.PersediaanPanel;
+import homemate.panel.TugasPanel;
 import homemate.util.Ikon;
 import homemate.util.Tema;
 import java.awt.BorderLayout;
@@ -34,15 +38,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
-
-import homemate.panel.TugasPanel;
-
-import homemate.panel.NotifikasiPanel;
-import homemate.dao.PengingatDeadline;
 import javax.swing.Timer;
-import java.sql.SQLException;
-import homemate.panel.KeuanganPanel;
-
 
 /**
  * Window utama: sidebar biru tua di kiri, isi layar di kanan. Milik Said.
@@ -56,28 +52,25 @@ public class MainFrame extends JFrame {
     private final Map<String, JPanel> layar = new LinkedHashMap<>();
     private final Map<String, ItemMenu> itemMenu = new LinkedHashMap<>();
     private final Pengguna pengguna;
+    private Timer pewaktuDeadline;
 
     public MainFrame(Pengguna pengguna) {
         super("HomeMate");
         this.pengguna = pengguna;
-        // TEST NOTIFIKASI
-        
-                setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-                setIconImage(Ikon.gambar(Ikon.Jenis.RUMAH, 64, Tema.PRIMER));
-                setPreferredSize(new Dimension(1200, 760));
-                setMinimumSize(new Dimension(1000, 640));
-                setLayout(new BorderLayout());
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setIconImage(Ikon.gambar(Ikon.Jenis.RUMAH, 64, Tema.PRIMER));
+        setPreferredSize(new Dimension(1200, 760));
+        setMinimumSize(new Dimension(1000, 640));
+        setLayout(new BorderLayout());
 
         // ===== DAFTAR LAYAR: ganti panel sementara dengan panel asli =====
         layar.put("Dashboard",        new DashboardPanel(pengguna, this::tampilkan)); // Said
-        layar.put("Anggota Keluarga", new AnggotaPanel()); // Tifa
-        layar.put("Tugas Rumah", new TugasPanel()); // Carlos
-
-        layar.put("Notifikasi", new NotifikasiPanel()); //Carlos
-        layar.put("Persediaan",       panelSementara("Persediaan"));       // Devin
+        layar.put("Anggota Keluarga", new AnggotaPanel());                 // Tifa
+        layar.put("Tugas Rumah",      new TugasPanel());                   // Carlos
+        layar.put("Notifikasi",       new NotifikasiPanel());              // Carlos
         layar.put("Persediaan",       new PersediaanPanel());              // Devin
         layar.put("Keuangan",         new KeuanganPanel());                // Ketrin
-        layar.put("Perawatan Rumah",  panelSementara("Perawatan Rumah"));  // Riva
+        layar.put("Perawatan Rumah",  new PerawatanPanel());               // Riva
         layar.put("Pengingat",        new PengingatPanel());               // Said
         layar.put("Laporan",          new LaporanPanel());                 // Said
         layar.put("Pengaturan",       new PengaturanPanel(pengguna));      // Said
@@ -92,7 +85,7 @@ public class MainFrame extends JFrame {
         pack();
         setLocationRelativeTo(null);
         tampilkan("Dashboard");
-        
+
         // Jalankan sistem pengingat deadline
         mulaiPengingatDeadline();
     }
@@ -191,24 +184,30 @@ public class MainFrame extends JFrame {
         PengingatDeadline pengingat = new PengingatDeadline();
 
         // Periksa deadline saat aplikasi pertama kali dibuka
+        periksaDeadline(pengingat);
+
+        // Periksa deadline secara berkala setiap 60 detik
+        pewaktuDeadline = new Timer(60_000, e -> periksaDeadline(pengingat));
+        pewaktuDeadline.start();
+    }
+
+    private void periksaDeadline(PengingatDeadline pengingat) {
         try {
             pengingat.periksaDeadline();
         } catch (Exception e) {
             System.err.println("Gagal memeriksa deadline: " + e.getMessage());
         }
-
-        // Periksa deadline secara berkala setiap 60 detik
-        Timer timer = new Timer(60_000, e -> {
-            try {
-                pengingat.periksaDeadline();
-            } catch (Exception ex) {
-                System.err.println("Gagal memeriksa deadline: " + ex.getMessage());
-            }
-        });
-
-        timer.start();
     }
-    
+
+    /** Hentikan pewaktu supaya tidak menumpuk tiap kali logout lalu login lagi. */
+    @Override
+    public void dispose() {
+        if (pewaktuDeadline != null) {
+            pewaktuDeadline.stop();
+        }
+        super.dispose();
+    }
+
     private void keluar() {
         int pilih = JOptionPane.showConfirmDialog(this,
                 "Yakin ingin keluar, " + pengguna.getNama() + "?", "Keluar",
